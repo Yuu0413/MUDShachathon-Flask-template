@@ -1,0 +1,19 @@
+# 仮想環境
+.venv/
+
+# Pythonキャッシュ
+__pycache__/
+*.pyc
+
+# 環境変数ファイル（APIキーなどの秘密情報）
+.env
+
+# データベースファイル
+data/*.db
+
+# macOS用のシステムファイル
+.DS_Store
+
+# エディタの設定フォルダ
+.vscode/
+.idea/
