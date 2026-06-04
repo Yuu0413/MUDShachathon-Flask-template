@@ -1,4 +1,4 @@
-from app import db, Item
+from models import db, Item
 
 # ===================================================
 # アイテム（サンプルデータ）の操作
