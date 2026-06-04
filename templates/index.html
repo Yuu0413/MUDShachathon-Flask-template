@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム | Flask テンプレート{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🚀 Flask ハッカソンテンプレート</h1>
+    <p>このテンプレートには以下のサンプルが含まれています。</p>
+
+    <div class="card-grid">
+        <a href="{{ url_for('form_page') }}" class="card">
+            <h2>📝 フォームサンプル</h2>
+            <p>入力フォームの作り方・データの受け取り方</p>
+        </a>
+        <a href="{{ url_for('database_page') }}" class="card">
+            <h2>🗄️ DB連携サンプル</h2>
+            <p>SQLiteを使ったデータの保存・取得・削除</p>
+        </a>
+        <a href="{{ url_for('api_page') }}" class="card">
+            <h2>🌐 外部API連携サンプル</h2>
+            <p>外部APIを叩いてデータを取得・表示する</p>
+        </a>
+        <a href="{{ url_for('auth_page') }}" class="card">
+            <h2>🔐 ログイン機能サンプル</h2>
+            <p>ユーザー登録・ログイン・ログアウトの実装</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
