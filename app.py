@@ -1,61 +1,26 @@
-from flask import Flask, render_template, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask import Flask, render_template, redirect, url_for, request, flash
+from flask_login import LoginManager, current_user
+from models import db, User, Item
+from utils.database import create_item, delete_item as db_delete_item
+from utils.auth import register_user, login as auth_login, logout as auth_logout
 
 # ===================================================
 # アプリの初期化
 # ===================================================
 app = Flask(__name__)
-
-# シークレットキー（セッション管理・ログイン機能に必要）
-# 本番環境では .env から読み込むこと！
 app.config["SECRET_KEY"] = "your-secret-key-here"
+import os
 
-# データベースの設定（SQLite を使用）
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data/app.db"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
+    BASE_DIR, "data", "app.db"
+)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# ===================================================
-# 拡張機能の初期化
-# ===================================================
-db = SQLAlchemy(app)
+db.init_app(app)
+
 login_manager = LoginManager(app)
-login_manager.login_view = "auth_page"  # 未ログイン時のリダイレクト先
-
-
-# ===================================================
-# モデル（データベースのテーブル定義）
-# ===================================================
-class User(db.Model):
-    """ユーザーテーブル"""
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-
-    # Flask-Login に必要なプロパティ
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
-        return str(self.id)
-
-
-class Item(db.Model):
-    """サンプルデータテーブル"""
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(200))
+login_manager.login_view = "auth_page"
 
 
 # ===================================================
@@ -67,37 +32,82 @@ def load_user(user_id):
 
 
 # ===================================================
-# ルーティング（URLとページの対応）
+# ルーティング
 # ===================================================
 @app.route("/")
 def index():
-    """トップページ"""
     return render_template("index.html")
 
 
-@app.route("/form")
+@app.route("/form", methods=["GET", "POST"])
 def form_page():
-    """フォームサンプルページ"""
-    return render_template("form.html")
+    result = None
+    if request.method == "POST":
+        result = {
+            "name": request.form.get("name"),
+            "message": request.form.get("message"),
+        }
+    return render_template("form.html", result=result)
 
 
-@app.route("/database")
+@app.route("/database", methods=["GET", "POST"])
 def database_page():
-    """DB連携サンプルページ"""
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description", "")
+        create_item(name, description)
+        flash("アイテムを追加しました！", "success")
+        return redirect(url_for("database_page"))
     items = Item.query.all()
     return render_template("database.html", items=items)
 
 
+@app.route("/database/delete/<int:item_id>", methods=["POST"])
+def delete_item(item_id):
+    db_delete_item(item_id)
+    flash("アイテムを削除しました！", "success")
+    return redirect(url_for("database_page"))
+
+
 @app.route("/api")
 def api_page():
-    """外部API連携サンプルページ"""
     return render_template("api.html")
 
 
 @app.route("/auth")
 def auth_page():
-    """ログイン機能サンプルページ"""
     return render_template("auth.html")
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    username = request.form.get("username")
+    password = request.form.get("password")
+    user, error = register_user(username, password)
+    if error:
+        flash(error, "error")
+    else:
+        flash("登録が完了しました！", "success")
+    return redirect(url_for("auth_page"))
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.form.get("username")
+    password = request.form.get("password")
+    success, error = auth_login(username, password)
+    if error:
+        flash(error, "error")
+    else:
+        flash("ログインしました！", "success")
+    return redirect(url_for("auth_page"))
+
+
+@app.route("/logout")
+def logout():
+    auth_logout()
+    flash("ログアウトしました！", "success")
+    return redirect(url_for("auth_page"))
 
 
 # ===================================================
@@ -105,5 +115,5 @@ def auth_page():
 # ===================================================
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # テーブルが存在しない場合は自動作成
+        db.create_all()
     app.run(debug=True)
