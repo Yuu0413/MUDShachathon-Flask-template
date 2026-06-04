@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}ログイン | Flask テンプレート{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🔐 ログイン機能サンプル</h1>
+
+    <div class="card-grid">
+        <!-- ユーザー登録フォーム -->
+        <div class="card">
+            <h2>新規登録</h2>
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="form-group">
+                    <label for="reg-username">ユーザー名</label>
+                    <input type="text" id="reg-username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">パスワード</label>
+                    <input type="password" id="reg-password" name="password" required>
+                </div>
+                <button type="submit" class="btn">登録する</button>
+            </form>
+        </div>
+
+        <!-- ログインフォーム -->
+        <div class="card">
+            <h2>ログイン</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label for="login-username">ユーザー名</label>
+                    <input type="text" id="login-username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">パスワード</label>
+                    <input type="password" id="login-password" name="password" required>
+                </div>
+                <button type="submit" class="btn">ログインする</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ログイン状態の表示 -->
+    {% if current_user.is_authenticated %}
+    <div class="result">
+        <p>✅ ログイン中：<strong>{{ current_user.username }}</strong></p>
+        <a href="{{ url_for('logout') }}" class="btn">ログアウト</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-from app import db, User
+from models import db, User
 from flask_login import login_user, logout_user
 
 # ===================================================
